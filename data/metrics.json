@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-01T07:05:31.596Z",
+  "generatedAt": "2026-05-01T07:18:29.384Z",
   "companies": [
     {
       "id": "swiis",
@@ -370,6 +370,144 @@
             "refDomains": null,
             "organicKeywords": 1292,
             "organicTraffic": 646
+          },
+          "instagram": {
+            "followers": null,
+            "postsMonthly": null,
+            "engagementsMonthly": null
+          },
+          "metaAds": {
+            "adsRunning": null
+          },
+          "press": {
+            "mentionsMonthly": 0
+          }
+        }
+      }
+    },
+    {
+      "month": "2026-05",
+      "values": {
+        "swiis": {
+          "seo": {
+            "authorityScore": null,
+            "refDomains": null,
+            "organicKeywords": 372,
+            "organicTraffic": 252
+          },
+          "instagram": {
+            "followers": null,
+            "postsMonthly": null,
+            "engagementsMonthly": null
+          },
+          "metaAds": {
+            "adsRunning": null
+          },
+          "press": {
+            "mentionsMonthly": 0
+          }
+        },
+        "nfa": {
+          "seo": {
+            "authorityScore": null,
+            "refDomains": null,
+            "organicKeywords": 2164,
+            "organicTraffic": 5526
+          },
+          "instagram": {
+            "followers": null,
+            "postsMonthly": null,
+            "engagementsMonthly": null
+          },
+          "metaAds": {
+            "adsRunning": null
+          },
+          "press": {
+            "mentionsMonthly": 0
+          }
+        },
+        "fca": {
+          "seo": {
+            "authorityScore": null,
+            "refDomains": null,
+            "organicKeywords": 2643,
+            "organicTraffic": 10209
+          },
+          "instagram": {
+            "followers": null,
+            "postsMonthly": null,
+            "engagementsMonthly": null
+          },
+          "metaAds": {
+            "adsRunning": null
+          },
+          "press": {
+            "mentionsMonthly": 0
+          }
+        },
+        "compass": {
+          "seo": {
+            "authorityScore": null,
+            "refDomains": null,
+            "organicKeywords": 2064,
+            "organicTraffic": 1069
+          },
+          "instagram": {
+            "followers": null,
+            "postsMonthly": null,
+            "engagementsMonthly": null
+          },
+          "metaAds": {
+            "adsRunning": null
+          },
+          "press": {
+            "mentionsMonthly": 0
+          }
+        },
+        "capstone": {
+          "seo": {
+            "authorityScore": null,
+            "refDomains": null,
+            "organicKeywords": 2760,
+            "organicTraffic": 8003
+          },
+          "instagram": {
+            "followers": null,
+            "postsMonthly": null,
+            "engagementsMonthly": null
+          },
+          "metaAds": {
+            "adsRunning": null
+          },
+          "press": {
+            "mentionsMonthly": 0
+          }
+        },
+        "tact": {
+          "seo": {
+            "authorityScore": null,
+            "refDomains": null,
+            "organicKeywords": 1148,
+            "organicTraffic": 2687
+          },
+          "instagram": {
+            "followers": null,
+            "postsMonthly": null,
+            "engagementsMonthly": null
+          },
+          "metaAds": {
+            "adsRunning": null
+          },
+          "press": {
+            "mentionsMonthly": 0
+          }
+        },
+        "orangegrove": {
+          "seo": {
+            "authorityScore": null,
+            "refDomains": null,
+            "organicKeywords": 1227,
+            "organicTraffic": 554
           },
           "instagram": {
             "followers": null,

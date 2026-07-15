@@ -410,6 +410,13 @@ function previousMonthKeyUTC(monthKey) {
   dt.setUTCMonth(dt.getUTCMonth() - 1);
   return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}`;
 }
+function shiftMonthKey(monthKey, delta) {
+  const p = parseMonthKey(monthKey);
+  if (!p || !Number.isFinite(delta)) return null;
+  const dt = new Date(Date.UTC(p.year, Number(p.month) - 1, 1));
+  dt.setUTCMonth(dt.getUTCMonth() + Number(delta));
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}`;
+}
 function lastMonthKeyUtcYYYYMM() { return previousMonthKeyUTC(currentMonthKeyUTC()); }
 
 function computeLatestMonthKey(rows) {
@@ -449,18 +456,67 @@ async function applyCustomRangeFromSelectors() {
     return;
   }
 
-  state.rangeStartKey = startKey;
-  state.rangeEndKey = endKey;
-  state.visibleMonths = listMonthKeysBetween(startKey, endKey);
-
-  if (!state.visibleMonths.length) {
-    alert("No months in selected range.");
-    return;
-  }
-
-  refresh();
+  setVisibleRange(startKey, endKey);
 }
 function applyCustomRangeFromSelectors_v2() { return applyCustomRangeFromSelectors(); }
+
+function clampMonthKeyToDataBounds(monthKey) {
+  if (!monthKey) return null;
+  let out = monthKey;
+  if (state.minMonthKey && compareMonthKey(out, state.minMonthKey) < 0) out = state.minMonthKey;
+  if (state.maxMonthKey && compareMonthKey(out, state.maxMonthKey) > 0) out = state.maxMonthKey;
+  return out;
+}
+
+function setVisibleRange(startKey, endKey) {
+  const boundedStart = clampMonthKeyToDataBounds(startKey);
+  const boundedEnd = clampMonthKeyToDataBounds(endKey);
+  if (!boundedStart || !boundedEnd) return;
+
+  if (compareMonthKey(boundedStart, boundedEnd) > 0) {
+    state.rangeStartKey = boundedEnd;
+    state.rangeEndKey = boundedEnd;
+    state.visibleMonths = [boundedEnd];
+  } else {
+    state.rangeStartKey = boundedStart;
+    state.rangeEndKey = boundedEnd;
+    state.visibleMonths = listMonthKeysBetween(boundedStart, boundedEnd);
+  }
+
+  setRangeSelectorsFromKeys(state.rangeStartKey, state.rangeEndKey);
+  refresh();
+}
+
+function canShiftVisibleRange(delta) {
+  if (!state.minMonthKey || !state.maxMonthKey) return false;
+
+  const startKey = state.rangeStartKey || state.visibleMonths[0] || state.latestMonthKey;
+  const endKey = state.rangeEndKey || state.visibleMonths[state.visibleMonths.length - 1] || state.latestMonthKey;
+  if (!startKey || !endKey) return false;
+
+  if (delta < 0) return compareMonthKey(startKey, state.minMonthKey) > 0;
+  if (delta > 0) return compareMonthKey(endKey, state.maxMonthKey) < 0;
+  return false;
+}
+
+function updateMonthNavButtonsState() {
+  const prevBtn = document.getElementById("prevMonthBtn");
+  const nextBtn = document.getElementById("nextMonthBtn");
+  if (prevBtn) prevBtn.disabled = !canShiftVisibleRange(-1);
+  if (nextBtn) nextBtn.disabled = !canShiftVisibleRange(1);
+}
+
+function shiftVisibleRangeByOneMonth(delta) {
+  const startKey = state.rangeStartKey || state.visibleMonths[0] || state.latestMonthKey;
+  const endKey = state.rangeEndKey || state.visibleMonths[state.visibleMonths.length - 1] || state.latestMonthKey;
+  if (!startKey || !endKey) return;
+
+  const shiftedStart = shiftMonthKey(startKey, delta);
+  const shiftedEnd = shiftMonthKey(endKey, delta);
+  if (!shiftedStart || !shiftedEnd) return;
+
+  setVisibleRange(shiftedStart, shiftedEnd);
+}
 
 /* -------------------------
    setLockedUI
@@ -990,6 +1046,14 @@ async function reloadFromXanoAndRefresh() {
       state.visibleMonths = defaultKey ? [defaultKey] : [];
       state.rangeStartKey = defaultKey;
       state.rangeEndKey = defaultKey;
+    } else if (state.rangeStartKey && state.rangeEndKey) {
+      const boundedStart = clampMonthKeyToDataBounds(state.rangeStartKey);
+      const boundedEnd = clampMonthKeyToDataBounds(state.rangeEndKey);
+      if (boundedStart && boundedEnd) {
+        state.rangeStartKey = boundedStart;
+        state.rangeEndKey = boundedEnd;
+        state.visibleMonths = listMonthKeysBetween(boundedStart, boundedEnd);
+      }
     }
 
     ensureChartMetricOptions(true);
@@ -1066,17 +1130,12 @@ function averageNumericForCompanyAcrossMonths(companyName, monthKeys, fieldKey) 
    ------------------------- */
 function setQuickThisMonth() {
   const key = currentMonthKeyUTC();
-  state.rangeStartKey = key;
-  state.rangeEndKey = key;
-  state.visibleMonths = [key];
-  refresh();
+  setVisibleRange(key, key);
 }
 function setQuickLastMonth() {
   const key = lastMonthKeyUtcYYYYMM();
-  state.rangeStartKey = key;
-  state.rangeEndKey = key;
-  state.visibleMonths = key ? [key] : [];
-  refresh();
+  if (!key) return;
+  setVisibleRange(key, key);
 }
 function fillMonthSelect(selectEl) {
   if (!selectEl) return;
@@ -1122,6 +1181,7 @@ function refresh() {
   if (!state.latestMonthKey) {
     mount.appendChild(el("p", { className: "muted", text: "No data found in backend." }));
     destroyChart();
+    updateMonthNavButtonsState();
     return;
   }
 
@@ -1137,6 +1197,7 @@ function refresh() {
   if (!selected.length) {
     mount.appendChild(el("p", { className: "muted", text: "No companies selected." }));
     destroyChart();
+    updateMonthNavButtonsState();
     return;
   }
 
@@ -1144,6 +1205,7 @@ function refresh() {
   ensureChartMetricOptions(false);
   renderChart();
   applyMetricsTableStyling();
+  updateMonthNavButtonsState();
 }
 
 /* -------------------------
@@ -1281,6 +1343,12 @@ async function init() {
 
     const applyRangeBtn = document.getElementById("applyRange");
     if (applyRangeBtn) applyRangeBtn.addEventListener("click", applyCustomRangeFromSelectors);
+
+    const prevMonthBtn = document.getElementById("prevMonthBtn");
+    if (prevMonthBtn) prevMonthBtn.addEventListener("click", () => shiftVisibleRangeByOneMonth(-1));
+
+    const nextMonthBtn = document.getElementById("nextMonthBtn");
+    if (nextMonthBtn) nextMonthBtn.addEventListener("click", () => shiftVisibleRangeByOneMonth(1));
 
     const quickThis = document.getElementById("quickThisMonth");
     if (quickThis) {

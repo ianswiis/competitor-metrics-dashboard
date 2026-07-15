@@ -160,6 +160,112 @@ async function gdeltMentionsCount({ query, windowDays }) {
   return total || 0;
 }
 
+// --- Meta Ads Library API ---
+
+function facebookUsernameFromUrl(rawUrl) {
+  const s = String(rawUrl || "").trim();
+  if (!s) return null;
+
+  try {
+    const u = new URL(s);
+    const host = u.hostname.toLowerCase();
+    if (!host.includes("facebook.com") && !host.includes("fb.com")) return null;
+
+    // Numeric IDs are sometimes embedded as profile.php?id=...
+    const qpId = u.searchParams.get("id");
+    if (qpId && /^\d+$/.test(qpId)) return qpId;
+
+    const segments = u.pathname.split("/").filter(Boolean);
+    if (!segments.length) return null;
+    const first = segments[0];
+    if (["pages", "pg", "people", "watch", "ads", "profile.php"].includes(first.toLowerCase())) return null;
+    return first;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveFacebookPageId({ company, accessToken, graphVersion = "v21.0" }) {
+  const explicitId = String(company?.facebookPageId || "").trim();
+  if (explicitId) return explicitId;
+
+  const explicitUsername = String(company?.facebookPageUsername || "").trim();
+  const fromUrlUsername = facebookUsernameFromUrl(company?.facebookPageUrl);
+  const username = explicitUsername || fromUrlUsername;
+
+  if (!username || !accessToken) return null;
+
+  // First attempt: resolve by username/vanity name.
+  try {
+    const byUsernameUrl =
+      `https://graph.facebook.com/${graphVersion}/${encodeURIComponent(username)}?` +
+      new URLSearchParams({ access_token: accessToken, fields: "id,name" }).toString();
+    const page = await fetchJsonLenient(byUsernameUrl);
+    if (page?.id) return String(page.id);
+  } catch {
+    // Fall through to URL-based resolution.
+  }
+
+  // Second attempt: resolve the provided URL directly.
+  const pageUrl = String(company?.facebookPageUrl || "").trim();
+  if (!pageUrl) return null;
+  try {
+    const byUrl =
+      `https://graph.facebook.com/${graphVersion}/?` +
+      new URLSearchParams({ access_token: accessToken, id: pageUrl, fields: "id,og_object{id}" }).toString();
+    const res = await fetchJsonLenient(byUrl);
+    if (res?.id) return String(res.id);
+    if (res?.og_object?.id) return String(res.og_object.id);
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+/**
+ * Returns the number of currently active ads for a Facebook Page using the
+ * public Meta Ads Library API.  Requires a valid User Access Token stored in
+ * the META_GRAPH_ACCESS_TOKEN environment variable (no special permissions
+ * beyond confirming your identity on the Ads Library site are needed).
+ *
+ * NOTE: This API is only available for ads data — it cannot be used to fetch
+ * Instagram follower counts, post counts, or engagement metrics for competitor
+ * accounts.  Those metrics require the account owner to authorise your app,
+ * which competitors won't do.  The Playwright Instagram scraper handles that.
+ */
+async function metaAdsLibraryCount({ accessToken, pageId, adReachedCountries = ["GB"], graphVersion = "v21.0" }) {
+  const countries = Array.isArray(adReachedCountries) && adReachedCountries.length
+    ? adReachedCountries
+    : ["GB"];
+
+  let total = 0;
+  let url =
+    `https://graph.facebook.com/${graphVersion}/ads_archive?` +
+    new URLSearchParams({
+      access_token: accessToken,
+      search_type: "PAGES",
+      ad_reached_countries: JSON.stringify(countries),
+      search_page_ids: String(pageId),
+      ad_active_status: "ACTIVE",
+      fields: "id",
+      limit: "100"
+    }).toString();
+
+  // Paginate until no more pages (cap at 20 pages = 2 000 ads, enough for any
+  // realistic competitor; prevents runaway loops if the API misbehaves).
+  let pageCount = 0;
+  while (url && pageCount < 20) {
+    const res = await fetchJsonLenient(url);
+    if (!Array.isArray(res?.data)) break;
+    total += res.data.length;
+    url = res?.paging?.next || null;
+    pageCount++;
+  }
+
+  return total;
+}
+
 // --- Instagram (Playwright) helpers ---
 
 function countPostsInWindowFromDatetimes(posts, windowDays) {
@@ -192,12 +298,21 @@ async function main() {
 
   const cookiesJson = process.env.IG_SESSION_JSON || "";
 
+  const settings = await readJsonSafe(SETTINGS_PATH, {});
+
+  const metaAccessToken = process.env[settings?.metaGraph?.accessTokenEnvVar || "META_GRAPH_ACCESS_TOKEN"] || "";
+  const metaGraphEnabled = !!metaAccessToken;
+  const metaAdCountries = settings?.metaGraph?.adReachedCountries || ["GB"];
+  const metaGraphVersion = settings?.metaGraph?.graphVersion || "v21.0";
+
+  if (!metaGraphEnabled) {
+    console.log("Meta Graph: META_GRAPH_ACCESS_TOKEN not set — Meta Ads counts will be null.");
+  }
+
   const companiesCfg = await readJsonSafe(COMPANIES_PATH, { companies: [] });
   if (!Array.isArray(companiesCfg.companies) || companiesCfg.companies.length === 0) {
     throw new Error("config/companies.json is missing or has no companies.");
   }
-
-  const settings = await readJsonSafe(SETTINGS_PATH, {});
   const defaultDb = settings?.semrush?.database || "uk";
   const windowDays = settings?.press?.windowDays ?? 30;
 
@@ -292,6 +407,33 @@ async function main() {
       mentionsMonthly = 0;
     }
 
+    // Meta Ads Library
+    let metaAdsRunning = null;
+    const resolvedFacebookPageId = metaGraphEnabled
+      ? await resolveFacebookPageId({ company: c, accessToken: metaAccessToken, graphVersion: metaGraphVersion })
+      : null;
+
+    if (metaGraphEnabled && resolvedFacebookPageId) {
+      try {
+        metaAdsRunning = await withRetries(
+          () => metaAdsLibraryCount({
+            accessToken: metaAccessToken,
+            pageId: resolvedFacebookPageId,
+            adReachedCountries: metaAdCountries,
+            graphVersion: metaGraphVersion
+          }),
+          { retries: 1, baseDelayMs: 2000 }
+        );
+        console.log(`  Meta Ads running: ${metaAdsRunning} (pageId=${resolvedFacebookPageId})`);
+      } catch (e) {
+        console.log(`  Meta Ads Library failed (storing null): ${String(e?.message || e)}`);
+      }
+    } else if (metaGraphEnabled && !resolvedFacebookPageId) {
+      console.log("  Meta Ads: could not resolve facebookPageId from company config (storing null).");
+    } else {
+      console.log("  Meta Ads: token not configured (storing null).");
+    }
+
     await sleep(11000);
 
     values[c.id] = {
@@ -302,7 +444,7 @@ async function main() {
         organicTraffic
       },
       instagram: { followers: instagramFollowers, postsMonthly: instagramPostsMonthly, engagementsMonthly: null },
-      metaAds: { adsRunning: null },
+      metaAds: { adsRunning: metaAdsRunning },
       press: { mentionsMonthly }
     };
   }

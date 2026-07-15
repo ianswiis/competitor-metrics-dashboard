@@ -1,11 +1,11 @@
 {
   "companies": [
-    { "id": "swiis", "name": "Swiis Foster Care", "domain": "swiisfostercare.com", "pressQuery": "\"Swiis\" foster care" },
-    { "id": "nfa", "name": "NFA", "domain": "nationalfosteringgroup.co.uk", "pressQuery": "\"National Fostering Group\" OR NFA fostering" },
-    { "id": "fca", "name": "FCA", "domain": "thefca.co.uk", "pressQuery": "\"The FCA\" fostering" },
-    { "id": "compass", "name": "Compass", "domain": "compassfostering.com", "pressQuery": "\"Compass Fostering\"" },
-    { "id": "capstone", "name": "Capstone", "domain": "capstonefostercare.co.uk", "pressQuery": "\"Capstone Foster Care\"" },
-    { "id": "tact", "name": "TACT", "domain": "tactfostering.org.uk", "pressQuery": "\"TACT\" fostering OR \"The Adolescent and Children's Trust\"" },
-    { "id": "orangegrove", "name": "Orange Grove", "domain": "orangegrovefostercare.co.uk", "pressQuery": "\"Orange Grove\" foster care" }
+    { "id": "swiis",       "name": "Swiis Foster Care", "domain": "swiisfostercare.com",          "pressQuery": "\"Swiis\" foster care",                                                          "facebookPageId": "4900812", "facebookPageUsername": "swiisfostercare", "facebookPageUrl": "https://www.facebook.com/swiisfostercare" },
+    { "id": "nfa",         "name": "NFA",               "domain": "nationalfosteringgroup.co.uk", "pressQuery": "\"National Fostering Group\" OR NFA fostering",                                  "facebookPageId": null, "facebookPageUsername": null, "facebookPageUrl": null },
+    { "id": "fca",         "name": "FCA",               "domain": "thefca.co.uk",                 "pressQuery": "\"The FCA\" fostering",                                                          "facebookPageId": null, "facebookPageUsername": null, "facebookPageUrl": null },
+    { "id": "compass",     "name": "Compass",            "domain": "compassfostering.com",          "pressQuery": "\"Compass Fostering\"",                                                          "facebookPageId": null, "facebookPageUsername": null, "facebookPageUrl": null },
+    { "id": "capstone",    "name": "Capstone",           "domain": "capstonefostercare.co.uk",      "pressQuery": "\"Capstone Foster Care\"",                                                       "facebookPageId": null, "facebookPageUsername": null, "facebookPageUrl": null },
+    { "id": "tact",        "name": "TACT",               "domain": "tactfostering.org.uk",          "pressQuery": "\"TACT\" fostering OR \"The Adolescent and Children's Trust\"",                  "facebookPageId": null, "facebookPageUsername": null, "facebookPageUrl": null },
+    { "id": "orangegrove", "name": "Orange Grove",       "domain": "orangegrovefostercare.co.uk",   "pressQuery": "\"Orange Grove\" foster care",                                                   "facebookPageId": null, "facebookPageUsername": null, "facebookPageUrl": null }
   ]
 }

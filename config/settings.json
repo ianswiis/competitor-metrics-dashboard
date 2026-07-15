@@ -13,5 +13,10 @@
       "capstone": "capstonefostercare",
       "nfa": "nfa_fostering"
     }
+  },
+  "metaGraph": {
+    "accessTokenEnvVar": "META_GRAPH_ACCESS_TOKEN",
+    "graphVersion": "v21.0",
+    "adReachedCountries": ["GB"]
   }
 }

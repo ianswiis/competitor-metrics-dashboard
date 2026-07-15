@@ -96,6 +96,29 @@ button:hover {
   border-radius: 10px;
 }
 
+.metrics-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.metrics-header-row h2 {
+  margin: 0;
+}
+
+.metrics-month-nav {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.metrics-month-nav button[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .table-wrap {
   overflow-x: auto;
 }

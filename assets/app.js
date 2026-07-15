@@ -1190,8 +1190,17 @@ function refresh() {
   const selected = uniqueCompanies(state.rows).filter(c => state.selectedCompanies.has(c));
 
   const lastUpdatedEl = document.getElementById("lastUpdated");
-  if (lastUpdatedEl)
-    lastUpdatedEl.textContent = `Loaded from backend. Latest month: ${state.latestMonthKey}. Viewing: ${visibleMonths.join(", ")}.`;
+  if (lastUpdatedEl) {
+    let viewingText = "";
+    if (visibleMonths.length <= 1) {
+      viewingText = visibleMonths[0] || state.latestMonthKey;
+    } else {
+      const start = visibleMonths[0];
+      const end = visibleMonths[visibleMonths.length - 1];
+      viewingText = `${start} to ${end}`;
+    }
+    lastUpdatedEl.textContent = `Loaded from backend. Latest month: ${state.latestMonthKey}. Viewing: ${viewingText}.`;
+  }
 
   setLastUpdatedAtText();
 

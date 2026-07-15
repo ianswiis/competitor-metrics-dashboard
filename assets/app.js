@@ -1351,6 +1351,24 @@ async function init() {
     const nextMonthBtn = document.getElementById("nextMonthBtn");
     if (nextMonthBtn) nextMonthBtn.addEventListener("click", () => shiftVisibleRangeByOneMonth(1));
 
+    const refreshDataBtn = document.getElementById("refreshDataBtn");
+    if (refreshDataBtn) {
+      refreshDataBtn.addEventListener("click", async () => {
+        const btn = refreshDataBtn;
+        const prevText = btn.textContent;
+        try {
+          btn.disabled = true;
+          btn.textContent = "Refreshing...";
+          await reloadFromXanoAndRefresh();
+        } catch (err) {
+          alert("Refresh failed: " + String(err?.message || err));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = prevText;
+        }
+      });
+    }
+
     const quickThis = document.getElementById("quickThisMonth");
     if (quickThis) {
       quickThis.addEventListener("change", (e) => {

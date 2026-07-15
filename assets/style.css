@@ -114,6 +114,20 @@ button:hover {
   align-items: center;
 }
 
+.metrics-month-nav .refresh-data-btn {
+  background: #0d66a2;
+  color: #ffffff;
+}
+
+.metrics-month-nav .refresh-data-btn:hover {
+  opacity: 0.95;
+}
+
+.metrics-month-nav .refresh-data-btn[disabled] {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .metrics-month-nav button[disabled] {
   opacity: 0.45;
   cursor: not-allowed;

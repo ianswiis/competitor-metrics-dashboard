@@ -52,6 +52,7 @@ function getXanoConfigGetUrl() { return _getCfg("XANO_CONFIG_GET_URL"); }
    ------------------------- */
 const XANO_BASE_URL = "https://x8ki-letl-twmt.n7.xano.io/api:ZvixoXZ8";
 const XANO_TABLE_PATH = "/competitor_metrics_dashboard";
+const XANO_TABLE_PATCH_PATH = "/competitor_metrics_dashboard2";
 const XANO_CONFIG_PATH = "/app_config";
 const EDIT_KEY_NAME = "EDIT_KEY";
 
@@ -203,7 +204,7 @@ async function fetchRowsFromBackend() {
 }
 
 async function patchRowToBackend(rowId, fields) {
-  const base = getXanoTablePatchUrl() || (XANO_BASE_URL + XANO_TABLE_PATH);
+  const base = getXanoTablePatchUrl() || (XANO_BASE_URL + XANO_TABLE_PATCH_PATH);
   const url = `${base.replace(/\/$/, "")}/${encodeURIComponent(rowId)}`;
   const updated = await apiFetch(url, { method: "PATCH", body: fields });
   return updated;

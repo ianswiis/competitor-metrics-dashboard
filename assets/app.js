@@ -97,10 +97,21 @@ function normalizeCompanyName(name) { return String(name || "").trim(); }
 function companySort(a, b) {
   const aa = normalizeCompanyName(a);
   const bb = normalizeCompanyName(b);
-  const aIsSwiis = aa.toLowerCase() === "swiis";
-  const bIsSwiis = bb.toLowerCase() === "swiis";
-  if (aIsSwiis && !bIsSwiis) return -1;
-  if (!aIsSwiis && bIsSwiis) return 1;
+  const companyRank = {
+    swiis: 0,
+    nfa: 1,
+    fca: 2,
+    compass: 3,
+    capstone: 4,
+    tact: 5,
+    "orange grove": 6,
+    orangegrove: 6
+  };
+  const aRank = companyRank[aa.toLowerCase()];
+  const bRank = companyRank[bb.toLowerCase()];
+  if (aRank !== undefined && bRank !== undefined) return aRank - bRank;
+  if (aRank !== undefined) return -1;
+  if (bRank !== undefined) return 1;
   return aa.localeCompare(bb);
 }
 const COMPANY_COLORS = {
